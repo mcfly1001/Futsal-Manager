@@ -95,6 +95,20 @@ void loadGame(Player *players, int *numPlayers) {
     FILE *file = fopen("savegame.txt", "r");
     if (file == NULL) {
         printf("No save file found. Starting a new game.\n");
+
+        // Set default values
+        managerLevel = 1;
+        clubMoney = 500.0;
+        *numPlayers = 8;  // Set to the desired default value
+
+        // Initialize players with default data
+        for (int i = 0; i < *numPlayers; ++i) {
+            sprintf(players[i].name, "Player%d", i + 1);
+            players[i].skill = rand() % 5 + 1;
+            players[i].energy = rand() % 10 + 1;
+            players[i].value = players[i].skill * 100.0 + players[i].energy * 10.0;
+        }
+
         return;
     }
 
@@ -259,3 +273,4 @@ void buyRandomPlayer(Player *players, int *numPlayers, double *clubMoney) {
         printf("Returning to the main menu.\n");
     }
 }
+
