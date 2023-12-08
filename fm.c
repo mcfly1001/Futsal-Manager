@@ -16,6 +16,8 @@ void sellPlayer(Player *players, int *numPlayers, int playerIndex);
 void matchDay(Player *players, int *numPlayers);
 void continueMatch(Player *players, int *numPlayers);
 void buyRandomPlayer(Player *players, int *numPlayers, double *clubMoney);
+void saveGame(Player *players, int numPlayers);
+void loadGame(Player *players, int *numPlayers, double *clubMoney);
 
 int managerLevel = 1; // Initial manager level
 double clubMoney = 500.0; // Initial club money
@@ -41,6 +43,9 @@ int main() {
         printf("1. List Players\n");
         printf("2. Print Stats\n");
         printf("3. Match Day\n");
+        printf("4. Save Game\n");
+        printf("5. Load Game\n");  // Added option to load a game
+        printf("0. Quit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
@@ -54,15 +59,61 @@ int main() {
             case 3:
                 matchDay(players, &numPlayers);
                 break;
+            case 4:
+                saveGame(players, numPlayers);
+                break;
+            case 5:
+                loadGame(players, &numPlayers, &clubMoney);
+                break;
             default:
                 if (choice >= 0) {
                     printf("Invalid choice. Please try again.\n");
                 }
         }
-    } while (choice >= 0); // Keep prompting until the user enters an invalid choice
+    } while (choice >= 0);
 
     free(players); // Free allocated memory
     return 0;
+}
+
+void saveGame(Player *players, int numPlayers) {
+    FILE *file = fopen("savegame.txt", "w");
+    if (file == NULL) {
+        printf("Error opening save file.\n");
+        return;
+    }
+
+    // Save player data
+    fprintf(file, "%d\n", numPlayers);
+    for (int i = 0; i < numPlayers; ++i) {
+        fprintf(file, "%s %d %d %.2f\n", players[i].name, players[i].skill, players[i].energy, players[i].value);
+    }
+
+    // Save manager level and club money
+    fprintf(file, "%d %.2f\n", managerLevel, clubMoney);
+
+    fclose(file);
+    printf("Game saved successfully.\n");
+}
+
+void loadGame(Player *players, int *numPlayers, double *clubMoney) {
+    FILE *file = fopen("savegame.txt", "r");
+    if (file == NULL) {
+        printf("No saved game found.\n");
+        return;
+    }
+
+    // Load player data
+    fscanf(file, "%d", numPlayers);
+    for (int i = 0; i < *numPlayers; ++i) {
+        fscanf(file, "%s %d %d %lf", players[i].name, &players[i].skill, &players[i].energy, &players[i].value);
+    }
+
+    // Load manager level and club money
+    fscanf(file, "%d %lf", &managerLevel, clubMoney);
+
+    fclose(file);
+    printf("Game loaded successfully.\n");
 }
 
 void listPlayers(Player *players, int *numPlayers) {
@@ -98,12 +149,6 @@ void listPlayers(Player *players, int *numPlayers) {
 void printStats() {
     printf("\nManager Level: %d\n", managerLevel);
     printf("Club Money: %.2f€\n", clubMoney);
-    printf("\nPress 0 to go back to the main menu: ");
-    int backChoice;
-    scanf("%d", &backChoice);
-    if (backChoice != 0) {
-        printf("Invalid choice. Returning to the main menu.\n");
-    }
 }
 
 void sellPlayer(Player *players, int *numPlayers, int playerIndex) {
@@ -223,4 +268,3 @@ void buyRandomPlayer(Player *players, int *numPlayers, double *clubMoney) {
         printf("Returning to the main menu.\n");
     }
 }
-
