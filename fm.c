@@ -9,33 +9,30 @@ typedef struct {
     double value;
 } Player;
 
+// Global variables
+int managerLevel = 1;
+double clubMoney = 500.0;
+
 // Function Declarations
+void saveGame(Player *players, int numPlayers);
+void loadGame(Player *players, int *numPlayers);
 void listPlayers(Player *players, int *numPlayers);
 void printStats();
 void sellPlayer(Player *players, int *numPlayers, int playerIndex);
 void matchDay(Player *players, int *numPlayers);
 void continueMatch(Player *players, int *numPlayers);
 void buyRandomPlayer(Player *players, int *numPlayers, double *clubMoney);
-void saveGame(Player *players, int numPlayers);
-void loadGame(Player *players, int *numPlayers, double *clubMoney);
-
-int managerLevel = 1; // Initial manager level
-double clubMoney = 500.0; // Initial club money
 
 int main() {
     // Initialize player data (example data)
     int numPlayers = 8;
     Player *players = (Player *)malloc(numPlayers * sizeof(Player));
 
+    // Load game from file on startup if available
+    loadGame(players, &numPlayers);
+
     // Seed the random number generator
     srand(time(NULL));
-
-    for (int i = 0; i < numPlayers; ++i) {
-        sprintf(players[i].name, "Player%d", i + 1);
-        players[i].skill = rand() % 5 + 1; // Random skill level from 1 to 5
-        players[i].energy = rand() % 10 + 1; // Random energy level from 1 to 10
-        players[i].value = players[i].skill * 100.0 + players[i].energy * 10.0; // Value based on player skill and energy levels
-    }
 
     int choice;
     do {
@@ -44,7 +41,6 @@ int main() {
         printf("2. Print Stats\n");
         printf("3. Match Day\n");
         printf("4. Save Game\n");
-        printf("5. Load Game\n");  // Added option to load a game
         printf("0. Quit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
@@ -61,59 +57,54 @@ int main() {
                 break;
             case 4:
                 saveGame(players, numPlayers);
+                printf("Game saved successfully!\n");
                 break;
-            case 5:
-                loadGame(players, &numPlayers, &clubMoney);
+            case 0:
+                printf("Exiting the game. Goodbye!\n");
                 break;
             default:
                 if (choice >= 0) {
                     printf("Invalid choice. Please try again.\n");
                 }
         }
-    } while (choice >= 0);
+    } while (choice != 0);
 
-    free(players); // Free allocated memory
+    // Free allocated memory
+    free(players);
+
     return 0;
 }
 
 void saveGame(Player *players, int numPlayers) {
     FILE *file = fopen("savegame.txt", "w");
     if (file == NULL) {
-        printf("Error opening save file.\n");
+        printf("Error opening file for writing.\n");
         return;
     }
 
-    // Save player data
-    fprintf(file, "%d\n", numPlayers);
+    fprintf(file, "%d %.2f %d\n", managerLevel, clubMoney, numPlayers);
+
     for (int i = 0; i < numPlayers; ++i) {
         fprintf(file, "%s %d %d %.2f\n", players[i].name, players[i].skill, players[i].energy, players[i].value);
     }
 
-    // Save manager level and club money
-    fprintf(file, "%d %.2f\n", managerLevel, clubMoney);
-
     fclose(file);
-    printf("Game saved successfully.\n");
 }
 
-void loadGame(Player *players, int *numPlayers, double *clubMoney) {
+void loadGame(Player *players, int *numPlayers) {
     FILE *file = fopen("savegame.txt", "r");
     if (file == NULL) {
-        printf("No saved game found.\n");
+        printf("No save file found. Starting a new game.\n");
         return;
     }
 
-    // Load player data
-    fscanf(file, "%d", numPlayers);
+    fscanf(file, "%d %lf %d", &managerLevel, &clubMoney, numPlayers);
+
     for (int i = 0; i < *numPlayers; ++i) {
         fscanf(file, "%s %d %d %lf", players[i].name, &players[i].skill, &players[i].energy, &players[i].value);
     }
 
-    // Load manager level and club money
-    fscanf(file, "%d %lf", &managerLevel, clubMoney);
-
     fclose(file);
-    printf("Game loaded successfully.\n");
 }
 
 void listPlayers(Player *players, int *numPlayers) {
